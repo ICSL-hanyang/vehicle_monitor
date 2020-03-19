@@ -1,0 +1,37 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/heromin/catkin_ws/devel/include",
+                "/opt/ros/melodic/include",
+                "/home/heromin/catkin_ws/src/assignment/include",
+                "/home/heromin/catkin_ws/src/realsense/ddynamic_reconfigure/include",
+                "/home/heromin/catkin_ws/src/ROS_tutorial/include",
+                "/home/heromin/catkin_ws/src/kalman_filter_exam/include",
+                "/home/heromin/catkin_ws/src/obstacle_detect/include",
+                "/home/heromin/catkin_ws/src/ouster_example/ouster_client/include",
+                "/home/heromin/catkin_ws/src/ouster_example/ouster_gazebo_plugins/include",
+                "/home/heromin/catkin_ws/src/ouster_example/ouster_ros/include",
+                "/home/heromin/catkin_ws/src/ouster_example/ouster_viz/include",
+                "/home/heromin/catkin_ws/src/realsense/realsense2_camera/include",
+                "/home/heromin/catkin_ws/src/ros2opencv/include",
+                "/home/heromin/catkin_ws/src/rosserial/rosserial_server/include",
+                "/home/heromin/catkin_ws/src/rosserial/rosserial_test/include",
+                "/home/heromin/catkin_ws/src/setpoint_ctrl_pkg/include",
+                "/home/heromin/catkin_ws/src/swarm_ctrl_pkg/include",
+                "/home/heromin/catkin_ws/src/uv_base/include",
+                "/usr/include"
+            ],
+            "name": "Linux",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}
