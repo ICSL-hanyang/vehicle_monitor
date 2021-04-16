@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>650</width>
-    <height>728</height>
+    <height>838</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -25,7 +25,7 @@
      <x>10</x>
      <y>10</y>
      <width>631</width>
-     <height>701</height>
+     <height>817</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -900,6 +900,21 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_13">
         <item>
+         <widget class="QLabel" name="label_22">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>max_speed</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLabel" name="label_19">
           <property name="font">
            <font>
@@ -994,6 +1009,13 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_14">
         <item>
+         <widget class="QSlider" name="horizontalSlider_max_speed">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QSlider" name="horizontalSlider_rep_range">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -1039,6 +1061,16 @@
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_15">
+        <item>
+         <widget class="QLineEdit" name="lineEdit_max_speed">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
         <item>
          <widget class="QLineEdit" name="lineEdit_rep_range">
           <property name="sizePolicy">

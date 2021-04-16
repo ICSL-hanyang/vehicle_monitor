@@ -41,6 +41,8 @@ class MainDialog(QDialog):
             self.checkBox_vel.toggle()
         self.checkBox_vel.stateChanged.connect(self.checkBoxVel)
         self.lineEdit_formation.setText("POINT")
+        self.lineEdit_max_speed.setText(str(rospy.get_param('swarm_node/local_plan/max_speed')))
+        self.lineEdit_max_speed.textChanged.connect(self.lineEditMaxSpeed)
         self.lineEdit_rep_range.setText(str(rospy.get_param('swarm_node/local_plan/repulsive_range')))
         self.lineEdit_rep_range.textChanged.connect(self.lineEditRepRange)
         self.lineEdit_kp_att.setText(str(rospy.get_param('swarm_node/local_plan/kp_attractive')))
@@ -53,6 +55,10 @@ class MainDialog(QDialog):
         self.lineEdit_kd_rep.textChanged.connect(self.lineEditKdRep)
         self.lineEdit_kp_r_vel.setText(str(rospy.get_param('swarm_node/local_plan/kp_repulsive_vel')))
         self.lineEdit_kp_r_vel.textChanged.connect(self.lineEditKpRepVel)
+        self.horizontalSlider_max_speed.setRange(0, 100)
+        self.horizontalSlider_max_speed.setSingleStep(1)
+        self.horizontalSlider_max_speed.setValue(int(rospy.get_param('swarm_node/local_plan/max_speed')*20))
+        self.horizontalSlider_max_speed.valueChanged.connect(self.sliderMaxSpeed)
         self.horizontalSlider_rep_range.setRange(0, 100)
         self.horizontalSlider_rep_range.setSingleStep(1)
         self.horizontalSlider_rep_range.setValue(int(rospy.get_param('swarm_node/local_plan/repulsive_range')*10))
@@ -194,6 +200,10 @@ class MainDialog(QDialog):
         state = self.checkBox_vel.isChecked()
         rospy.set_param('swarm_node/use_velocity_controller', state)
 
+    def lineEditMaxSpeed(self):
+        self.horizontalSlider_max_speed.setValue(int(float(self.lineEdit_max_speed.text())*20))
+        rospy.set_param('swarm_node/local_plan/max_speed', float(self.lineEdit_max_speed.text()))
+
     def lineEditRepRange(self):
         self.horizontalSlider_rep_range.setValue(int(float(self.lineEdit_rep_range.text())*10))
         rospy.set_param('swarm_node/local_plan/repulsive_range', float(self.lineEdit_rep_range.text()))
@@ -218,6 +228,11 @@ class MainDialog(QDialog):
         self.horizontalSlider_kp_r_vel.setValue(int(float(self.lineEdit_kp_r_vel.text())*50))
         rospy.set_param('swarm_node/local_plan/kp_repulsive_vel', float(self.lineEdit_kp_r_vel.text()))
     
+    def sliderMaxSpeed(self):
+        position = self.horizontalSlider_max_speed.sliderPosition()
+        rospy.set_param('swarm_node/local_plan/max_speed', (position / 20.0))
+        self.lineEdit_max_speed.setText(str(rospy.get_param('swarm_node/local_plan/max_speed')))
+
     def sliderRange(self):
         position = self.horizontalSlider_rep_range.sliderPosition()
         rospy.set_param('swarm_node/local_plan/repulsive_range', (position / 10.0))
