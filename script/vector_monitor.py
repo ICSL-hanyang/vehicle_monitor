@@ -86,58 +86,46 @@ class VectorMonitor(QMainWindow):
         ax = gl.GLAxisItem(size=QVector3D(1,1,1))
         self.window.addItem(ax)
 
-        vector_x = np.array([0, 0, 0])
-        vector_y = np.array([2,2,2])
-        self.vector = gl.GLLinePlotItem(pos=np.array([vector_x, vector_y]),color=glColor(255,0,0),width=3, antialias=False)
-        self.window.addItem(self.vector)
+        # vector_x = np.array([0, 0, 0])
+        # vector_y = np.array([2,2,2])
+        # self.vector = gl.GLLinePlotItem(pos=np.array([vector_x, vector_y]),color=glColor(255,0,0),width=3, antialias=False)
+        # self.window.addItem(self.vector)
 
         self.timer = QTimer()
         self.timer.setInterval(100)
         self.timer.timeout.connect(self.updatePlot)
         self.timer.start()
         
+        self.colors = []
+        self.colors.append(pg.glColor(255,140,0))
+        self.colors.append(pg.glColor(255,105,180))
+        self.colors.append(pg.glColor(0,0,255))
         self._drones = []
         self.scatters = []
         self.atts = []
         self.reps = []
         self.v_reps = []
         self._drone_num = rospy.get_param('swarm_node/num_drone')
-        # self.fig = plt.figure()
-        # self.ax = self.fig.add_subplot(111, projection='3d')
-        # self.ax.set_xlim([-10,10])
-        # self.ax.set_ylim([-10,10])
-        # self.ax.set_zlim([0,7])
-        # self.ax.set_xlabel('x')
-        # self.ax.set_ylabel('y')
-        # self.ax.set_zlabel('z')
+        pose = np.array([0,0,0])
         for i in range(self._drone_num):
             name = 'camila' + str(i+1)
             self._drones.append(Drone(name))
-            self.scatters.append(gl.GLScatterPlotItem(pos=(0,0,0), size=15, color=pg.glColor(255,255,255)))
+            self.scatters.append(gl.GLScatterPlotItem(pos=(0,0,0), size=15, color=pg.glColor(255,0,0)))
+            self.atts.append(gl.GLLinePlotItem(pos=np.array([pose, pose]), color=glColor(0,255,0), width=3, antialias=False))
+            self.reps.append(gl.GLLinePlotItem(pos=np.array([pose, pose]), color=glColor(255,0,0), width=3, antialias=False))
+            self.v_reps.append(gl.GLLinePlotItem(pos=np.array([pose, pose]), color=glColor(255,255,0), width=3, antialias=False))
             self.window.addItem(self.scatters[i])
-        # for i in range(self._drone_num):
-        #     pose = self._drones[i].getPose()
-        #     att = self._drones[i].getAtt()
-        #     rep = self._drones[i].getRep()
-        #     v_rep = self._drones[i].getVRep()
-        #     pos = np.array([pose.x, pose.y, pose.z])
-        #     self.window.addItem(gl.GLScatterPlotItem(pos=pos, size=10, color=pg.glColor(255,255,255)))
-        # self.window.show()
-        #     self.scatters.append(self.ax.scatter(0,0,0))
-        #     self.atts.append(self.ax.quiver(0,0,0,0,0,0))
-        #     self.reps.append(self.ax.quiver(0,0,0,0,0,0))
-        #     self.v_reps.append(self.ax.quiver(0,0,0,0,0,0))
-
-        # for i in range(self._drone_num):
-        #     self.atts[i].remove()
-        #     self.reps[i].remove()
-        #     self.v_reps[i].remove()
-            
+            self.window.addItem(self.atts[i])
+            self.window.addItem(self.reps[i])
+            self.window.addItem(self.v_reps[i])
 
     def updatePlot(self):
         # color_cycle= itertools.cycle(["orange","pink","blue","brown","red","grey","yellow","green"])
         for i in range(self._drone_num):
             self.window.removeItem(self.scatters[i])
+            self.window.removeItem(self.atts[i])
+            self.window.removeItem(self.reps[i])
+            self.window.removeItem(self.v_reps[i])
 
         for i in range(self._drone_num):
             pose = self._drones[i].getPose()
@@ -145,36 +133,24 @@ class VectorMonitor(QMainWindow):
             rep = self._drones[i].getRep()
             v_rep = self._drones[i].getVRep()
             pos = np.array([pose.x, pose.y, pose.z])
-            self.scatters[i] = gl.GLScatterPlotItem(pos=pos, size=15, color=pg.glColor(255,255,255))
+            att_p = np.array([att.x, att.y, att.z])
+            rep_p = np.array([rep.x, rep.y, rep.z])
+            v_rep_p = np.array([v_rep.x, v_rep.y, v_rep.z])
+            self.scatters[i] = gl.GLScatterPlotItem(pos=pos, size=15, color=self.colors[i])
+            self.atts[i] = gl.GLLinePlotItem(pos=np.array([pos, pos+att_p]), color=glColor(0,255,0), width=3, antialias=False)
+            self.reps[i] = gl.GLLinePlotItem(pos=np.array([pos, pos+rep_p]), color=glColor(255,0,0), width=3, antialias=False)
+            self.v_reps[i] = gl.GLLinePlotItem(pos=np.array([pos, pos+v_rep_p]), color=glColor(255,255,0), width=3, antialias=False)
 
             self.window.addItem(self.scatters[i])
+            self.window.addItem(self.atts[i])
+            self.window.addItem(self.reps[i])
+            self.window.addItem(self.v_reps[i])
         self.window.show()
 
-
-            # self.atts[i] = self.ax.quiver(pose.x, pose.y, pose.z, att.x, att.y, att.z, color='green')
-            # self.reps[i] = self.ax.quiver(pose.x, pose.y, pose.z, rep.x, rep.y, rep.z, color='red')
-            # self.v_reps[i] = self.ax.quiver(pose.x, pose.y, pose.z, v_rep.x, v_rep.y, v_rep.z, color='orange')
-
-    def draw(self):
-        pass
-        # plt.pause(0.3)
-        # for i in range(self._drone_num):
-        #     self.scatters[i].remove()
-        #     self.atts[i].remove()
-        #     self.reps[i].remove()
-        #     self.v_reps[i].remove()
-
-        # plt.show()
-        
 
 if __name__ == '__main__':
     rospy.init_node('vector_monitor')
     app = QApplication(sys.argv)
     monitor = VectorMonitor()
-
-    # monitor.show()
-    #     # monitor.draw()
     
     sys.exit(app.exec_())
-    # app.exec_()
-    # plt.show()
