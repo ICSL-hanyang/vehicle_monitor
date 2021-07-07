@@ -1,22 +1,18 @@
 #! /usr/bin/env python
 
-from inspect import trace
-from math import acos, pi, sqrt
 import sys
+from math import acos, pi, sqrt
 
 from PyQt5.QtCore import *
-
 from PyQt5.QtGui import QVector3D
-from pyqtgraph.Qt import translate
 from pyqtgraph.functions import glColor
-from geometry_msgs import msg
-import rospy, rospkg
 from PyQt5.QtWidgets import *
 import pyqtgraph.opengl as gl
-import pyqtgraph as pg
 
 import numpy as np
-from geometry_msgs.msg import Twist, TwistStamped, Vector3
+import rospy
+from geometry_msgs.msg import Twist, Vector3
+from rospy.exceptions import ROSException
 
 class Drone:
     def __init__(self, name):
@@ -77,28 +73,22 @@ class VectorMonitor(QMainWindow):
         self.color_red = glColor(255,0,0)
         self.color_green = glColor(0,255,0)
         self.color_blue = glColor(50,50,255)
+        self.color_sky = glColor(0, 255, 255)
         self.color_yellow = glColor(255,255,0)
         self.color_orange = glColor(255,140,0)
         self.color_pink = glColor(255,105,180)
-
+        self.color_brown = glColor(150,75,0)
+        self.color_grey = glColor(128,128,128)
 
         self.window = gl.GLViewWidget()
-        # self.window.setBackgroundColor(pg.mkColor(100,100,100))
         self.window.setWindowTitle('Terrain')
         self.window.setGeometry(0, 110, 1920, 1080)
         self.window.setCameraPosition(distance=30, elevation=12)
 
-        # gx = gl.GLGridItem()
-        # gy = gl.GLGridItem()
         gz = gl.GLGridItem()
-        # gx.rotate(90, 0, 1, 0)
-        # gy.rotate(90, 1, 0, 0)
-        # gx.translate(-10, 0, 0)
-        # gy.translate(0, -10, 0)
         gz.translate(0, 0, -0.01)
-        # self.window.addItem(gx)
-        # self.window.addItem(gy)
         self.window.addItem(gz)
+
         ax = gl.GLAxisItem(size=QVector3D(15,15,15))
         self.window.addItem(ax)
 
@@ -111,14 +101,21 @@ class VectorMonitor(QMainWindow):
         self.colors.append(self.color_orange)
         self.colors.append(self.color_pink)
         self.colors.append(self.color_blue)
+        self.colors.append(self.color_brown)
+        self.colors.append(self.color_red)
+        self.colors.append(self.color_grey)
+        self.colors.append(self.color_yellow)
+        self.colors.append(self.color_green)
         self._drones = []
         self.scatters = []
         self.atts = []
         self.reps = []
         self.v_reps = []
+        self.setpoints = []
         self.att_heads = []
         self.rep_heads = []
         self.v_rep_heads = []
+        self.setpoint_heads = []
         self._drone_num = rospy.get_param('swarm_node/num_drone')
         pose = np.array([0,0,0])
         self.mesh = gl.MeshData.cylinder(rows=3, cols=10, radius=[self.arrow_size, 0], length=self.arrow_length)
@@ -131,33 +128,35 @@ class VectorMonitor(QMainWindow):
             self.atts.append(gl.GLLinePlotItem(pos=np.array([pose, pose]), color=self.color_green, width=3, antialias=False))
             self.reps.append(gl.GLLinePlotItem(pos=np.array([pose, pose]), color=self.color_red, width=3, antialias=False))
             self.v_reps.append(gl.GLLinePlotItem(pos=np.array([pose, pose]), color=self.color_yellow, width=3, antialias=False))
+            self.setpoints.append(gl.GLLinePlotItem(pos=np.array([pose, pose]), color=self.color_sky, width=3, antialias=False))
             self.att_heads.append(gl.GLMeshItem(meshdata=self.mesh, smooth=True, drawEdges=False, color=self.color_green))
             self.rep_heads.append(gl.GLMeshItem(meshdata=self.mesh, smooth=True, drawEdges=False, color=self.color_red))
             self.v_rep_heads.append(gl.GLMeshItem(meshdata=self.mesh, smooth=True, drawEdges=False, color=self.color_yellow))
+            self.setpoint_heads.append(gl.GLMeshItem(meshdata=self.mesh, smooth=True, drawEdges=False, color=self.color_sky))
 
             self.window.addItem(self.scatters[i])
             self.window.addItem(self.atts[i])
             self.window.addItem(self.reps[i])
             self.window.addItem(self.v_reps[i])
+            self.window.addItem(self.setpoints[i])
             self.window.addItem(self.att_heads[i])
             self.window.addItem(self.rep_heads[i])
             self.window.addItem(self.v_rep_heads[i])
+            self.window.addItem(self.setpoint_heads[i])
 
     def scatterDraw(self, i):
         self.window.removeItem(self.scatters[i])
         pose = self._drones[i].getPose()
         pos = np.array([pose.x, pose.y, pose.z])
-        self.scatters[i] = gl.GLScatterPlotItem(pos=pos, size=15, color=self.colors[i])
+        self.scatters[i] = gl.GLScatterPlotItem(pos=pos, size=self.scatter_size, color=self.colors[i%8])
         self.window.addItem(self.scatters[i])
 
     def drawArrow(self, var, var_head, i, color, vec):
-        self.window.removeItem(var[i])
         self.window.removeItem(var_head[i])
         pose = self._drones[i].getPose()
         pos = np.array([pose.x, pose.y, pose.z])
         vec_p = np.array([vec.x, vec.y, vec.z])
-        var[i] = gl.GLLinePlotItem(pos=np.array([pos, pos+vec_p]), color=color, width=3, antialias=False)
-        self.window.addItem(var[i])
+        var[i].setData(pos=np.array([pos, pos+vec_p]), color=color, width=3, antialias=False)
         if vec.x == 0 and vec.y==0 and vec.z==0:
             var_head[i] = gl.GLMeshItem(meshdata=self.mesh2, smooth=True, drawEdges=False, color=color)
         else:
@@ -181,10 +180,13 @@ class VectorMonitor(QMainWindow):
 
     def updatePlot(self):
         for i in range(self._drone_num):
+            setpoint = self._drones[i].getSetpoint()
             self.scatterDraw(i)
             self.drawArrow(self.atts, self.att_heads, i, self.color_green, self._drones[i].getAtt())
             self.drawArrow(self.reps, self.rep_heads, i, self.color_red, self._drones[i].getRep())
-            self.drawArrow(self.v_reps, self.v_rep_heads, i, self.color_yellow, self._drones[i].getVRep())
+            self.drawArrow(self.setpoints, self.setpoint_heads, i, self.color_sky, Vector3(setpoint.linear.x, setpoint.linear.y, setpoint.linear.z))
+            if rospy.get_param('swarm_node/local_plan/use_adaptive'):
+                self.drawArrow(self.v_reps, self.v_rep_heads, i, self.color_yellow, self._drones[i].getVRep())
             
         self.window.show()
 
