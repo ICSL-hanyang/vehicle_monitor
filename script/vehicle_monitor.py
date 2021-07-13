@@ -43,8 +43,8 @@ class MainDialog(QDialog):
         self.lineEdit_formation.setText("POINT")
         self.lineEdit_max_speed.setText(str(rospy.get_param('swarm_node/local_plan/max_speed')))
         self.lineEdit_max_speed.textChanged.connect(self.lineEditMaxSpeed)
-        self.lineEdit_rep_range.setText(str(rospy.get_param('swarm_node/local_plan/sensing_range')))
-        self.lineEdit_rep_range.textChanged.connect(self.lineEditRepRange)
+        self.lineEdit_sensing_range.setText(str(rospy.get_param('swarm_node/local_plan/sensing_range')))
+        self.lineEdit_sensing_range.textChanged.connect(self.lineEditSensingRange)
         self.lineEdit_kp_att.setText(str(rospy.get_param('swarm_node/local_plan/kp_attractive')))
         self.lineEdit_kp_att.textChanged.connect(self.lineEditKpAtt)
         self.lineEdit_kp_rep.setText(str(rospy.get_param('swarm_node/local_plan/kp_repulsive')))
@@ -59,10 +59,10 @@ class MainDialog(QDialog):
         self.horizontalSlider_max_speed.setSingleStep(1)
         self.horizontalSlider_max_speed.setValue(int(rospy.get_param('swarm_node/local_plan/max_speed')*20))
         self.horizontalSlider_max_speed.valueChanged.connect(self.sliderMaxSpeed)
-        self.horizontalSlider_rep_range.setRange(0, 100)
-        self.horizontalSlider_rep_range.setSingleStep(1)
-        self.horizontalSlider_rep_range.setValue(int(rospy.get_param('swarm_node/local_plan/sensing_range')*10))
-        self.horizontalSlider_rep_range.valueChanged.connect(self.sliderRange)
+        self.horizontalSlider_sensing_range.setRange(0, 100)
+        self.horizontalSlider_sensing_range.setSingleStep(1)
+        self.horizontalSlider_sensing_range.setValue(int(rospy.get_param('swarm_node/local_plan/sensing_range')*10))
+        self.horizontalSlider_sensing_range.valueChanged.connect(self.sliderRange)
         self.horizontalSlider_kp_att.setRange(0, 100)
         self.horizontalSlider_kp_att.setSingleStep(1)
         self.horizontalSlider_kp_att.setValue(int(rospy.get_param('swarm_node/local_plan/kp_attractive')*50))
@@ -204,9 +204,9 @@ class MainDialog(QDialog):
         self.horizontalSlider_max_speed.setValue(int(float(self.lineEdit_max_speed.text())*20))
         rospy.set_param('swarm_node/local_plan/max_speed', float(self.lineEdit_max_speed.text()))
 
-    def lineEditRepRange(self):
-        self.horizontalSlider_rep_range.setValue(int(float(self.lineEdit_rep_range.text())*10))
-        rospy.set_param('swarm_node/local_plan/sensing_range', float(self.lineEdit_rep_range.text()))
+    def lineEditSensingRange(self):
+        self.horizontalSlider_sensing_range.setValue(int(float(self.lineEdit_sensing_range.text())*10))
+        rospy.set_param('swarm_node/local_plan/sensing_range', float(self.lineEdit_sensing_range.text()))
     
     def lineEditKpAtt(self):
         self.horizontalSlider_kp_att.setValue(int(float(self.lineEdit_kp_att.text())*50))
@@ -234,9 +234,9 @@ class MainDialog(QDialog):
         self.lineEdit_max_speed.setText(str(rospy.get_param('swarm_node/local_plan/max_speed')))
 
     def sliderRange(self):
-        position = self.horizontalSlider_rep_range.sliderPosition()
+        position = self.horizontalSlider_sensing_range.sliderPosition()
         rospy.set_param('swarm_node/local_plan/sensing_range', (position / 10.0))
-        self.lineEdit_rep_range.setText(str(rospy.get_param('swarm_node/local_plan/sensing_range')))
+        self.lineEdit_sensing_range.setText(str(rospy.get_param('swarm_node/local_plan/sensing_range')))
 
     def sliderKpAtt(self):
         position = self.horizontalSlider_kp_att.sliderPosition()
