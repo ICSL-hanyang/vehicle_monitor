@@ -922,7 +922,7 @@
            </font>
           </property>
           <property name="text">
-           <string>repulsive_range</string>
+           <string>sensing_range</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
