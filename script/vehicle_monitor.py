@@ -18,6 +18,41 @@ rospack = rospkg.RosPack()
 vehicle_monitor = rospack.get_path('vehicle_monitor')
 monitor_UI = vehicle_monitor +'/vehicle_monitor.ui'
 
+class Drone:
+    def __init__(self, name):
+        self._name = name
+        att_path = name + '/local_plan/attractive'
+        rep_path = name + '/local_plan/repulsive'
+        v_rep_path = name + '/local_plan/repulsive_vel'
+        setpoint_path = name + '/mavros/setpoint_velocity/cmd_vel_unstamped'
+        self._att_sub = rospy.Subscriber(att_path, Vector3, self.attSub)
+        self._rep_sub = rospy.Subscriber(rep_path, Vector3, self.repSub)
+        self._r_vel_sub = rospy.Subscriber(v_rep_path, Vector3, self.rVelSub)
+        self._set_vel_sub = rospy.Subscriber(setpoint_path, Twist, self.setVelSub)
+        self._att = Vector3()
+        self._rep = Vector3()
+        self._v_rep = Vector3()
+        self._set_vel = Twist()
+
+    def attSub(self, msg):
+        self._att = msg
+
+    def repSub(self, msg):
+        self._rep = msg
+    
+    def rVelSub(self, msg):
+        self._v_rep = msg
+
+    def setVelSub(self, msg):
+        self._set_vel = msg
+
+    def getState(self):
+        att = self._name + ' att : ' + str(round(self._att.x, 2)) + ', ' + str(round(self._att.y, 2)) + ', ' + str(round(self._att.z, 2))
+        rep = self._name + ' rep : ' + str(round(self._rep.x, 2)) + ', ' + str(round(self._rep.y, 2)) + ', ' + str(round(self._rep.z, 2))
+        r_vel = self._name + ' r vel : ' + str(round(self._v_rep.x, 2)) + ', ' + str(round(self._v_rep.y, 2)) + ', ' + str(round(self._v_rep.z, 2))
+        set_vel = self._name + ' set vel : ' + str(round(self._set_vel.linear.x, 2)) + ', ' + str(round(self._set_vel.linear.y, 2)) + ', ' + str(round(self._set_vel.linear.z, 2))
+        return att + '\n' + rep + '\n' + r_vel + '\n' + set_vel
+
 class MainDialog(QDialog):
     def __init__(self, parent=None, flags=Qt.WindowStaysOnTopHint):
         super().__init__(parent=parent, flags=flags)
@@ -45,6 +80,8 @@ class MainDialog(QDialog):
         self.lineEdit_max_speed.textChanged.connect(self.lineEditMaxSpeed)
         self.lineEdit_sensing_range.setText(str(rospy.get_param('swarm_node/local_plan/sensing_range')))
         self.lineEdit_sensing_range.textChanged.connect(self.lineEditSensingRange)
+        self.lineEdit_safety_range.setText(str(rospy.get_param('swarm_node/local_plan/safety_range')))
+        self.lineEdit_safety_range.textChanged.connect(self.lineEditSafetyRange)
         self.lineEdit_kp_att.setText(str(rospy.get_param('swarm_node/local_plan/kp_attractive')))
         self.lineEdit_kp_att.textChanged.connect(self.lineEditKpAtt)
         self.lineEdit_kp_rep.setText(str(rospy.get_param('swarm_node/local_plan/kp_repulsive')))
@@ -62,7 +99,11 @@ class MainDialog(QDialog):
         self.horizontalSlider_sensing_range.setRange(0, 100)
         self.horizontalSlider_sensing_range.setSingleStep(1)
         self.horizontalSlider_sensing_range.setValue(int(rospy.get_param('swarm_node/local_plan/sensing_range')*10))
-        self.horizontalSlider_sensing_range.valueChanged.connect(self.sliderRange)
+        self.horizontalSlider_sensing_range.valueChanged.connect(self.sliderSensingRange)
+        self.horizontalSlider_safety_range.setRange(0, 100)
+        self.horizontalSlider_safety_range.setSingleStep(1)
+        self.horizontalSlider_safety_range.setValue(int(rospy.get_param('swarm_node/local_plan/safety_range')*10))
+        self.horizontalSlider_safety_range.valueChanged.connect(self.sliderSafetyRange)
         self.horizontalSlider_kp_att.setRange(0, 100)
         self.horizontalSlider_kp_att.setSingleStep(1)
         self.horizontalSlider_kp_att.setValue(int(rospy.get_param('swarm_node/local_plan/kp_attractive')*50))
@@ -96,32 +137,14 @@ class MainDialog(QDialog):
         self._swarm_formation = ""
         self._swarm_control = True
 
-        self._drone1_att_sub = rospy.Subscriber("camila1/local_plan/attractive", Vector3, self.d1attSub)
-        self._drone1_rep_sub = rospy.Subscriber("camila1/local_plan/repulsive", Vector3, self.d1repSub)
-        self._drone1_r_vel_sub = rospy.Subscriber("camila1/local_plan/repulsive_vel", Vector3, self.d1rVelSub)
-        self._drone1_set_vel_sub = rospy.Subscriber("camila1/mavros/setpoint_velocity/cmd_vel_unstamped", Twist, self.d1SetVelSub)
-        self._drone2_att_sub = rospy.Subscriber("camila2/local_plan/attractive", Vector3, self.d2attSub)
-        self._drone2_rep_sub = rospy.Subscriber("camila2/local_plan/repulsive", Vector3, self.d2repSub)
-        self._drone2_r_vel_sub = rospy.Subscriber("camila2/local_plan/repulsive_vel", Vector3, self.d2rVelSub)
-        self._drone2_set_vel_sub = rospy.Subscriber("camila2/mavros/setpoint_velocity/cmd_vel_unstamped", Twist, self.d2SetVelSub)
-        self._drone3_att_sub = rospy.Subscriber("camila3/local_plan/attractive", Vector3, self.d3attSub)
-        self._drone3_rep_sub = rospy.Subscriber("camila3/local_plan/repulsive", Vector3, self.d3repSub)
-        self._drone3_r_vel_sub = rospy.Subscriber("camila3/local_plan/repulsive_vel", Vector3, self.d3rVelSub)    
-        self._drone3_set_vel_sub = rospy.Subscriber("camila3/mavros/setpoint_velocity/cmd_vel_unstamped", Twist, self.d3SetVelSub)
-        self._drone1_att = Vector3()
-        self._drone1_rep = Vector3()
-        self._drone1_r_vel = Vector3()
-        self._drone1_set_vel = Twist()
-        self._drone2_att = Vector3()
-        self._drone2_rep = Vector3()
-        self._drone2_r_vel = Vector3()
-        self._drone2_set_vel = Twist()
-        self._drone3_att = Vector3()
-        self._drone3_rep = Vector3()
-        self._drone3_r_vel = Vector3()
-        self._drone3_set_vel = Twist()
         self.arming_pub = rospy.Publisher('multi/arming', Bool, queue_size=10)
         self.set_mode_pub = rospy.Publisher('multi/set_mode', String, queue_size=10)
+
+        self._drone_num = rospy.get_param('swarm_node/num_drone')
+        self._drones = []
+        for i in range(self._drone_num):
+            name = 'camila' + str(i+1)
+            self._drones.append(Drone(name))
 
 
     def arming(self, state, data):
@@ -208,6 +231,10 @@ class MainDialog(QDialog):
         self.horizontalSlider_sensing_range.setValue(int(float(self.lineEdit_sensing_range.text())*10))
         rospy.set_param('swarm_node/local_plan/sensing_range', float(self.lineEdit_sensing_range.text()))
     
+    def lineEditSafetyRange(self):
+        self.horizontalSlider_safety_range.setValue(int(float(self.lineEdit_safety_range.text())*10))
+        rospy.set_param('swarm_node/local_plan/safety_range', float(self.lineEdit_safety_range.text()))
+    
     def lineEditKpAtt(self):
         self.horizontalSlider_kp_att.setValue(int(float(self.lineEdit_kp_att.text())*50))
         rospy.set_param('swarm_node/local_plan/kp_attractive', float(self.lineEdit_kp_att.text()))
@@ -233,10 +260,15 @@ class MainDialog(QDialog):
         rospy.set_param('swarm_node/local_plan/max_speed', (position / 20.0))
         self.lineEdit_max_speed.setText(str(rospy.get_param('swarm_node/local_plan/max_speed')))
 
-    def sliderRange(self):
+    def sliderSensingRange(self):
         position = self.horizontalSlider_sensing_range.sliderPosition()
         rospy.set_param('swarm_node/local_plan/sensing_range', (position / 10.0))
         self.lineEdit_sensing_range.setText(str(rospy.get_param('swarm_node/local_plan/sensing_range')))
+
+    def sliderSafetyRange(self):
+        position = self.horizontalSlider_safety_range.sliderPosition()
+        rospy.set_param('swarm_node/local_plan/safety_range', (position / 10.0))
+        self.lineEdit_safety_range.setText(str(rospy.get_param('swarm_node/local_plan/safety_range')))
 
     def sliderKpAtt(self):
         position = self.horizontalSlider_kp_att.sliderPosition()
@@ -264,58 +296,9 @@ class MainDialog(QDialog):
         self.lineEdit_kp_r_vel.setText(str(rospy.get_param('swarm_node/local_plan/kp_repulsive_vel')))
 
     def stateDisplay(self):
-        d1att = 'D1 att : ' + str(round(self._drone1_att.x, 2)) + ', ' + str(round(self._drone1_att.y, 2)) + ', ' + str(round(self._drone1_att.z, 2))
-        d1rep = 'D1 rep : ' + str(round(self._drone1_rep.x, 2)) + ', ' + str(round(self._drone1_rep.y, 2)) + ', ' + str(round(self._drone1_rep.z, 2))
-        d1r_vel = 'D1 r vel : ' + str(round(self._drone1_r_vel.x, 2)) + ', ' + str(round(self._drone1_r_vel.y, 2)) + ', ' + str(round(self._drone1_r_vel.z, 2))
-        d1set_vel = 'D1 set vel : ' + str(round(self._drone1_set_vel.linear.x, 2)) + ', ' + str(round(self._drone1_set_vel.linear.y, 2)) + ', ' + str(round(self._drone1_set_vel.linear.z, 2))
-        self.textBrowser_2.setText(d1att + '\n' + d1rep + '\n' + d1r_vel + '\n' + d1set_vel)
-        d2att = 'D2 att : ' + str(round(self._drone2_att.x, 2)) + ', ' + str(round(self._drone2_att.y, 2)) + ', ' + str(round(self._drone2_att.z, 2))
-        d2rep = 'D2 rep : ' + str(round(self._drone2_rep.x, 2)) + ', ' + str(round(self._drone2_rep.y, 2)) + ', ' + str(round(self._drone2_rep.z, 2))
-        d2r_vel = 'D2 r vel : ' + str(round(self._drone2_r_vel.x, 2)) + ', ' + str(round(self._drone2_r_vel.y, 2)) + ', ' + str(round(self._drone2_r_vel.z, 2))
-        d2set_vel = 'D2 set vel : ' + str(round(self._drone2_set_vel.linear.x, 2)) + ', ' + str(round(self._drone2_set_vel.linear.y, 2)) + ', ' + str(round(self._drone2_set_vel.linear.z, 2))
-        self.textBrowser_3.setText(d2att + '\n' + d2rep + '\n' + d2r_vel + '\n' + d2set_vel)
-        d3att = 'D3 att : ' + str(round(self._drone3_att.x, 2)) + ', ' + str(round(self._drone3_att.y, 2)) + ', ' + str(round(self._drone3_att.z, 2))
-        d3rep = 'D3 rep : ' + str(round(self._drone3_rep.x, 2)) + ', ' + str(round(self._drone3_rep.y, 2)) + ', ' + str(round(self._drone3_rep.z, 2))
-        d3r_vel = 'D3 r vel : ' + str(round(self._drone3_r_vel.x, 2)) + ', ' + str(round(self._drone3_r_vel.y, 2)) + ', ' + str(round(self._drone3_r_vel.z, 2))
-        d3set_vel = 'D3 set vel : ' + str(round(self._drone3_set_vel.linear.x, 2)) + ', ' + str(round(self._drone3_set_vel.linear.y, 2)) + ', ' + str(round(self._drone3_set_vel.linear.z, 2))
-        self.textBrowser_4.setText(d3att + '\n' + d3rep + '\n' + d3r_vel + '\n' + d3set_vel)
-
-    def d1attSub(self, msg):
-        self._drone1_att = msg
-
-    def d1repSub(self, msg):
-        self._drone1_rep = msg
-    
-    def d1rVelSub(self, msg):
-        self._drone1_r_vel = msg
-
-    def d1SetVelSub(self, msg):
-        self._drone1_set_vel = msg
-
-    def d2attSub(self, msg):
-        self._drone2_att = msg
-
-    def d2repSub(self, msg):
-        self._drone2_rep = msg
-    
-    def d2rVelSub(self, msg):
-        self._drone2_r_vel = msg
-
-    def d2SetVelSub(self, msg):
-        self._drone2_set_vel = msg
-
-    def d3attSub(self, msg):
-        self._drone3_att = msg
-
-    def d3repSub(self, msg):
-        self._drone3_rep = msg
-    
-    def d3rVelSub(self, msg):
-        self._drone3_r_vel = msg
-    
-    def d3SetVelSub(self, msg):
-        self._drone3_set_vel = msg
-
+        self.textBrowser_2.setText(self._drones[0].getState())
+        self.textBrowser_3.setText(self._drones[1].getState())
+        self.textBrowser_4.setText(self._drones[2].getState())
 
 rospy.init_node("vehicle_monitor")
 app = QApplication(sys.argv)

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>650</width>
-    <height>838</height>
+    <height>871</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -24,8 +24,8 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>631</width>
-     <height>817</height>
+     <width>601</width>
+     <height>852</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -930,6 +930,21 @@
          </widget>
         </item>
         <item>
+         <widget class="QLabel" name="label_23">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>safety_range</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLabel" name="label_16">
           <property name="font">
            <font>
@@ -1016,7 +1031,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QSlider" name="horizontalSlider_rep_range">
+         <widget class="QSlider" name="horizontalSlider_sensing_range">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSlider" name="horizontalSlider_safety_range">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -1072,7 +1094,17 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_rep_range">
+         <widget class="QLineEdit" name="lineEdit_sensing_range">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEdit_safety_range">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>

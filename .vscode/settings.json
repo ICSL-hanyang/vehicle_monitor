@@ -6,5 +6,6 @@
     "python.analysis.extraPaths": [
         "/home/heromin/catkin_ws/devel/lib/python3/dist-packages",
         "/opt/ros/melodic/lib/python2.7/dist-packages"
-    ]
+    ],
+    "qtForPython.designer.path": "/usr/lib/x86_64-linux-gnu/qt5/bin/designer"
 }
